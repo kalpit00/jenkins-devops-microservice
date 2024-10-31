@@ -28,16 +28,16 @@ pipeline {
 				sh "mvn clean compile"
 			}
 		}
-		// stage('Test') {
-		// 	steps {
-		// 		sh "mvn test"
-		// 	}
-		// }
-		// stage('Integration Test') {
-		// 	steps {
-		// 		sh "mvn failsafe:integration-test failsafe:verify"
-		// 	}
-		// }
+		stage('Test') {
+			steps {
+				sh "mvn test"
+			}
+		}
+		stage('Integration Test') {
+			steps {
+				sh "mvn failsafe:integration-test failsafe:verify"
+			}
+		}
 		
 		stage('Package') {
 			steps {
@@ -48,7 +48,7 @@ pipeline {
 			steps {
 				// "docker build -t in28min/currency-exchange-devops:$env.BUILD_TAG"
 				script {
-					dockerImage = docker.build("kalpit00/currency-exchange-devops:${env.BUILD_TAG}")
+					dockerImage = docker.build("<docker_hub_user>/<repo>:${env.BUILD_TAG}")
 				}
 			}
 		}
@@ -66,7 +66,7 @@ pipeline {
 	
 	post {
 		always {
-			echo 'This prints always after every stage of pipeline executes'
+			echo 'This prints always after pipeline executes'
 		}
 		success {
 			echo 'This prints only after successful run'
