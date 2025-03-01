@@ -1,56 +1,113 @@
-Jenkins CI/CD pipeline created using Docker + Java Maven
+# Jenkins CI/CD Pipeline with Docker & Java Maven  
 
-My First Jenkins Pipeline to automate a simple Java Spring Boot application
+This project demonstrates setting up a **Jenkins CI/CD pipeline** to automate a **Java Spring Boot** application using **Docker** and **Maven**.  
 
-Jenkins installed using Docker, so running the Jenkins on my local machine. Follow these steps to run Jenkins locally :
-https://www.jenkins.io/doc/book/installing/docker/#on-macos-and-linux
+## Prerequisites  
 
-Configure a DockerFile in the `root` directory where the SpringBoot application is located, and copy the code for a `Docker:dind` image to build and run the Jenkins instance
+To run Jenkins locally, you need:  
+- **Docker** installed  
+- **Jenkins** running inside a Docker container  
+- A **DockerHub account** (for pushing images)  
 
-Once Jenkins runs inside a Docker container (I configured it on port 8081), open the localhost:8081 in a browser. In order to find the initial password, you can follow
-https://www.jenkins.io/doc/book/system-administration/viewing-logs/
-run `docker container ls` and grab the container id of the Jenkins image, and run `docker logs <containerId>`
+---  
 
-Copy the `initialAdminPassword` as Jenkins will ask this to sign up for the first time. It will ask to setup a Username-Password as well, and this becomes your credentials to login to this image of Jenkins on your machine
+## Step 1: Install and Run Jenkins in Docker  
 
+Jenkins is installed using Docker to run locally. Follow the official installation guide:  
+🔗 [Jenkins Docker Installation](https://www.jenkins.io/doc/book/installing/docker/#on-macos-and-linux)  
 
-Once Jenkins is launched, all the work is done using the `JenkinsFile`
+### Steps to Run Jenkins  
+1. Create a `Dockerfile` in the **root directory** of the Spring Boot application.  
+2. Use a `Docker:dind` image to build and run Jenkins.  
+3. Start Jenkins inside a Docker container (configured on port **8081**).  
 
-This is the file where we write Jenkins script. There are two main ways Jenkins DSL interprets it, one is `Scripted`, other is `Declarative`
+Once running, open **`http://localhost:8081`** in a browser.  
 
-The `Declarative` Syntax `AUTO-PULLS` the commits from the SCM. Therefore, you can work on this JenkinsFile in your IDE and any changes that are pushed/commited to the version control (I used Github), Jenkins will initialize a new "Run" of the pipeline
+### Retrieve Jenkins Initial Admin Password  
+1. Run:  
+   ```sh
+   docker container ls
+   ```  
+   Find the **Container ID** of the Jenkins instance.  
+2. Retrieve logs:  
+   ```sh
+   docker logs <containerId>
+   ```  
+3. Copy the `initialAdminPassword` from the logs.  
+4. Use this password for the first-time login and set up a username-password for future access.  
 
-I configured the `Scheduler` for 1 minute, so Jenkins sends out a new pipeline within a minute after every commit to the Github repo
+---  
 
+## Step 2: Configuring Jenkins Pipeline  
 
-To the Actual Jenkins CI/CD Pipeline, I played around with the Script (this is quite similar to Azure Devops or other cloud based pipelines and syntax is quite Yaml-like)
+Jenkins pipelines are defined in a `Jenkinsfile`. This script automates the build process.  
 
-To run the actual Java Spring Boot application on Jenkins, we need to enable Maven and Docker on the Jenkins server
+### Declarative vs. Scripted Pipelines  
+- **Declarative Pipeline** (Recommended) → **Auto-pulls** commits from SCM (e.g., GitHub).  
+- **Scripted Pipeline** → More flexible but requires manual control over build steps.  
 
-1. Add Apahce Maven tool in Jenkins Settings.
-2. Add Docker tool in Jenkins Settings. Now we can use `mvm` commands or `docker` commands as part of our Jenkins Script
+### GitHub Integration  
+- Any **committed or pushed changes** trigger a new Jenkins build.  
+- A **Scheduler** is set for **1-minute intervals**, ensuring a new pipeline run after every commit.  
 
+---  
 
-IMPORTANT STEP : Add your DockerHub Credentials to Jenkins Global Credentials page in order to use `docker build` in the script. We will use `docker.withRegistry` and push the docker image directly to our dockerHub
+## Step 3: Setting Up Maven & Docker in Jenkins  
 
-JENKINS PIPELINE
-1. Compile Maven Project Stage
-2. Test + Integration Tests Stage
-3. Build/Package Jar File Stage
-4. Build & Push Docker Image Stage
+To run the Java Spring Boot application within Jenkins, enable:  
+1. **Apache Maven** → Add via **Jenkins Global Tool Configuration**.  
+2. **Docker** → Enable Docker commands in Jenkins.  
 
-A quite straightforward Jenkins Pipeline. We will first compile our Java Spring Boot application using `sh "mvn clean compile"`
+Jenkins now supports `mvn` and `docker` commands inside the pipeline script.  
 
-Then we will run the Integration tests using `sh "mvn test"` and `sh "mvn failsafe:integration-test failsafe:verify"`
+### **Important:** Add DockerHub Credentials  
+To enable `docker build` and `docker push` in Jenkins:  
+- Go to **Jenkins Global Credentials**.  
+- Add your **DockerHub username and password**.  
+- Use `docker.withRegistry()` to authenticate.  
 
-Package the Jar file by `sh "mvn package -DskipTests"`
+---  
 
+## Step 4: Jenkins Pipeline Stages  
 
-Finally, build the docker image using `"docker build -t <docker_image_path>:$env.BUILD_TAG"`
+The **Jenkins pipeline** consists of the following stages:  
 
-And push the docker image to dockerhub using :
+1️⃣ **Compile Maven Project**  
+   ```sh
+   sh "mvn clean compile"
+   ```  
 
-`docker.withRegistry('', 'dockerhub') {
-  dockerImage.push();
-  dockerImage.push('latest');
-}`
+2️⃣ **Run Tests & Integration Tests**  
+   ```sh
+   sh "mvn test"
+   sh "mvn failsafe:integration-test failsafe:verify"
+   ```  
+
+3️⃣ **Package JAR File**  
+   ```sh
+   sh "mvn package -DskipTests"
+   ```  
+
+4️⃣ **Build & Push Docker Image**  
+   ```sh
+   docker build -t <docker_image_path>:$env.BUILD_TAG .
+   ```  
+   Push to **DockerHub**:  
+   ```sh
+   docker.withRegistry('', 'dockerhub') {
+     dockerImage.push();
+     dockerImage.push('latest');
+   }
+   ```  
+
+---  
+
+## Summary  
+
+This Jenkins pipeline automates:  
+✅ **Building a Java Spring Boot application** using Maven  
+✅ **Running unit & integration tests**  
+✅ **Packaging the application** into a JAR file  
+✅ **Creating a Docker image** and pushing it to DockerHub  
+
+Explore different Jenkins pipeline configurations to enhance CI/CD automation! 🚀  
